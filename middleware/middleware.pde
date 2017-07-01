@@ -4,7 +4,6 @@ import netP5.*;
 
 int choosingPort = 1;
 
-  
 OscP5 oscP5; //to receive message from unity
 int listenPort = 12000; //port for listening message from Unity
 NetAddress unityAddr; //unity osc server address
@@ -12,6 +11,7 @@ DisposeHandler dh;
 Serial serial;
 
 void setup() {
+  strBuffer = new StringBuffer();
   dh = new DisposeHandler(this);
   oscP5 = new OscP5(this,listenPort);
   unityAddr = new NetAddress("127.0.0.1", 11000);
@@ -48,7 +48,7 @@ void draw() {
   while(serial.available() > 0) {
     String stringRead = serial.readStringUntil(lf);
     if(stringRead != null) {
-      print(stringRead); //dump message from arduino
+      print("msg from arduino:" + stringRead); //dump message from arduino
       //send string read from arduino to Unity
       OscMessage oscMsg = new OscMessage("/ArduinoMsg");
       oscMsg.add(stringRead);
@@ -58,7 +58,27 @@ void draw() {
 
 }
 
+StringBuffer strBuffer;
+/* incoming osc message are forwarded to the oscEvent method. */
+void oscEvent(OscMessage theOscMessage) {
+  theOscMessage.print();
+  
+  if(theOscMessage.addrPattern().equals("/arduinoCtrl")) {
+    Object[] values = theOscMessage.arguments();
+    strBuffer.setLength(0);
+    strBuffer.append(values[0].toString());
+    for(int i = 1;i < values.length;i++) {
+      strBuffer.append(',');
+      strBuffer.append(values[i].toString());
+    }
+    strBuffer.append('\n');
+    serial.write(strBuffer.toString());
+  }
+  
+}
+
 //for testing
+/*
 void keyPressed() {
 
   if(key == 'b') {
@@ -77,12 +97,8 @@ void keyPressed() {
     oscP5.send(testMsg, unityAddr);
   }
 }
+*/
 
-/* incoming osc message are forwarded to the oscEvent method. */
-void oscEvent(OscMessage theOscMessage) {
-  println("### received an osc message with addrpattern "+theOscMessage.addrPattern()+" and typetag "+theOscMessage.typetag());
-  theOscMessage.print();
-}
 
 public class DisposeHandler {
    

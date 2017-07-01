@@ -21,11 +21,15 @@ public class OSCTest : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		if(Input.GetKeyDown(KeyCode.K)) {
-			OSCMessage msg = new OSCMessage("/UnityCtrl");
+			OSCMessage msg = new OSCMessage("/arduinoCtrl");
 			msg.Append("test"); //add a string
-			msg.Append(123); //add a integer
 			client.Send(msg);			
 		}		
+		else if(Input.GetKeyDown(KeyCode.T)) {
+			OSCMessage msg = new OSCMessage("/arduinoCtrl");
+			msg.Append("blend"); //add a string
+			client.Send(msg);	
+		}
 	}
 
 	void OnApplicationQuit() {
